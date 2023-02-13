@@ -1,0 +1,58 @@
+version: "3.9"
+services:
+  mysqlservice:
+    image: mysql:latest
+    ports:
+      - "3306:3306"
+    container_name: mysql-container
+    networks:
+      - springcloud-todo-net
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USERNAME: root
+      MYSQL_PASSWORD: root
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+
+  userauthenticationservice:
+    container_name: AuthenticationApp
+    build: UserAuthentication/
+    networks:
+      - springcloud-todo-net
+    ports:
+      - "8084:8084"
+    depends_on:
+      - mysqlservice
+      - apigateway
+    restart: always
+
+  mongo-service:
+    image: mongo:latest
+    container_name: mongo-container
+    networks:
+      - springcloud-todo-net
+    ports:
+      - "27017:27017"
+
+  todo-service:
+    container_name: TodoListApp
+    build: TodoList/
+    networks:
+      - springcloud-todo-net
+    ports:
+      - "8085:8085"
+    depends_on:
+      - mongo-service
+      - apigateway
+    restart: always
+
+  apigateway:
+    container_name: spring-cloud-api-gateway
+    build: APIGateWayApp/
+    networks:
+      - springcloud-todo-net
+    ports:
+      - "9090:9090"
+
+networks:
+  springcloud-todo-net:
+    driver: bridge
